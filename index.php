@@ -102,7 +102,7 @@ $totalPages = $results['pages'];
 
                 <div class="col-md-4 col-sm-6 mb-4">
                     <div class="card shadow-sm">
-                        <img src="<?= htmlspecialchars($art['Photo']) ?>" class="card-img-top" alt="<?= htmlspecialchars($art['Title']) ?>" />
+                        <img src="<?php echo BASE_URL . "/" . htmlspecialchars($art['Photo']) ?>" class="card-img-top" alt="<?= htmlspecialchars($art['Title']) ?>" />
                         <div class="card-body">
                             <h5 class="card-title"><?= htmlspecialchars($art['Title']) ?></h5>
                             <p class="card-text"><?= htmlspecialchars($art['Description']) ?></p>

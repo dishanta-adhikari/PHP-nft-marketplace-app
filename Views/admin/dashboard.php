@@ -9,9 +9,9 @@ $app = new App();
 $conn = $app->connect();
 
 // Check if admin is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login");
-    exit;
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+    header("Location: ". VIEW_URL ."/auth/login");
+    exit();
 }
 
 $adminId = $_SESSION['user_id'];
@@ -31,27 +31,27 @@ $admin = $stmt->fetch();
     <div class="nft-dashboard-grid">
 
         <div class="nft-card">
-            <h5 class="nft-card-title">Add New NFT</h5>
+            <h5 class="nft-card-title">Create NFT</h5>
             <p class="nft-card-text">Upload and manage NFT artworks.</p>
-            <a href="<?php echo VIEW_URL; ?>/admin/create-nft" class="nft-btn-light">Go</a>
+            <a href="<?php echo VIEW_URL; ?>/artwork/create" class="nft-btn-light">Create</a>
         </div>
 
         <div class="nft-card">
-            <h5 class="nft-card-title">Manage Artworks</h5>
-            <p class="nft-card-text">See all uploaded NFT artworks.</p>
-            <a href="view_artworks" class="nft-btn-light">Manage</a>
+            <h5 class="nft-card-title">Artworks</h5>
+            <p class="nft-card-text">Edit all uploaded NFT artworks.</p>
+            <a href="<?php echo VIEW_URL; ?>/artwork/edit" class="nft-btn-light">Edit</a>
         </div>
 
         <div class="nft-card">
-            <h5 class="nft-card-title">Manage Artists</h5>
+            <h5 class="nft-card-title">Artists</h5>
             <p class="nft-card-text">Add or update artist information.</p>
-            <a href="manage_artists" class="nft-btn-light">Manage</a>
+            <a href="<?php echo VIEW_URL; ?>/artist/manage" class="nft-btn-light">Manage</a>
         </div>
 
         <div class="nft-card">
-            <h5 class="nft-card-title">Manage User Roles</h5>
+            <h5 class="nft-card-title">Assign Roles</h5>
             <p class="nft-card-text">See and update users.</p>
-            <a href="manage_users" class="nft-btn-light">Manage</a>
+            <a href="<?php echo VIEW_URL; ?>/admin/users" class="nft-btn-light">Edit</a>
         </div>
 
     </div>

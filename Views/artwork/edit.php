@@ -1,7 +1,17 @@
 <?php
-require_once __DIR__."../../Config/Config.php";
-require_once __DIR__."../../Config/Url.php";
-include_once __DIR__."../../Views/user/header.php";
+session_start();
+
+require_once __DIR__ . "/../../App/App.php";
+require_once __DIR__ . "/../../Config/Url.php";
+require_once __DIR__ . "/../../Views/Components/header.php";
+
+$app = new App();
+$conn = $app->connect();
+
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+    header("Location: " . VIEW_URL . "/auth/login");
+    exit();
+}
 
 // Handle enable/disable and edit actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -9,43 +19,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $artworkId = intval($_POST['artwork_id']);
         $currentStatus = $_POST['current_status'] === 'active' ? 'disabled' : 'active';
 
-        $stmt = $pdo->prepare("UPDATE artwork SET Status = ? WHERE Artwork_ID = ?");
+        $stmt = $conn->prepare("UPDATE artwork SET Status = ? WHERE Artwork_ID = ?");
         $stmt->execute([$currentStatus, $artworkId]);
         $_SESSION['message'] = "Artwork status updated.";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
     }
-
-    if (isset($_POST['edit_artwork'])) {
-        $artworkId = intval($_POST['artwork_id']);
-        $title = $_POST['title'];
-        $description = $_POST['description'];
-        $price = floatval($_POST['price']);
-        $artistId = intval($_POST['artist_id']);
-
-        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = 'uploads/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-            $tmpName = $_FILES['photo']['tmp_name'];
-            $filename = basename($_FILES['photo']['name']);
-            $targetFile = $uploadDir . uniqid() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
-            move_uploaded_file($tmpName, $targetFile);
-
-            $stmt = $pdo->prepare("UPDATE artwork SET Title = ?, Description = ?, Price = ?, Photo = ?, Artist_ID = ? WHERE Artwork_ID = ?");
-            $stmt->execute([$title, $description, $price, $targetFile, $artistId, $artworkId]);
-        } else {
-            $stmt = $pdo->prepare("UPDATE artwork SET Title = ?, Description = ?, Price = ?, Artist_ID = ? WHERE Artwork_ID = ?");
-            $stmt->execute([$title, $description, $price, $artistId, $artworkId]);
-        }
-
-        $_SESSION['message'] = "Artwork updated successfully.";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit;
-    }
 }
 
+if (isset($_POST['edit_artwork'])) {
+    $artworkId = intval($_POST['artwork_id']);
+    $title = $_POST['title'];
+    $description = $_POST['description'];
+    $price = floatval($_POST['price']);
+    $artistId = intval($_POST['artist_id']);
+
+    // Default photo update flag
+    $photoPath = null;
+
+    // Handle file upload if a new photo is uploaded
+    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/../../uploads/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+        $tmpName = $_FILES['photo']['tmp_name'];
+        $filename = basename($_FILES['photo']['name']);
+        $uniqueName = uniqid() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
+        $targetPath = $uploadDir . $uniqueName;
+
+        if (move_uploaded_file($tmpName, $targetPath)) {
+            $photoPath = 'uploads/' . $uniqueName; // This is what will be saved in DB
+        } else {
+            $_SESSION['message'] = "Failed to upload the image.";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+        }
+    }
+
+    // Update query
+    if ($photoPath) {
+        $stmt = $conn->prepare("UPDATE artwork SET Title = ?, Description = ?, Price = ?, Photo = ?, Artist_ID = ? WHERE Artwork_ID = ?");
+        $stmt->execute([$title, $description, $price, $photoPath, $artistId, $artworkId]);
+    } else {
+        $stmt = $conn->prepare("UPDATE artwork SET Title = ?, Description = ?, Price = ?, Artist_ID = ? WHERE Artwork_ID = ?");
+        $stmt->execute([$title, $description, $price, $artistId, $artworkId]);
+    }
+
+    $_SESSION['message'] = "Artwork updated successfully.";
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+
 // Fetch all artists
-$artistStmt = $pdo->query("SELECT Artist_ID, Name FROM artist ORDER BY Name ASC");
+$artistStmt = $conn->query("SELECT Artist_ID, Name FROM artist ORDER BY Name ASC");
 $allArtists = $artistStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Handle search and filter
@@ -78,12 +105,51 @@ if ($statusFilter === 'active') {
 
 $query .= " ORDER BY a.Created_At DESC";
 
-$stmt = $pdo->prepare($query);
+$stmt = $conn->prepare($query);
 $stmt->execute($params);
 $artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+// Pagination
+$itemsPerPage = 6;
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($page - 1) * $itemsPerPage;
+
+// Count total items for pagination
+$countQuery = "
+    SELECT COUNT(*) FROM artwork a
+    JOIN artist ar ON a.Artist_ID = ar.Artist_ID
+    LEFT JOIN nft ON a.Artwork_ID = nft.Artwork_ID
+    WHERE 1
+";
+
+$countParams = [];
+if (!empty($searchTerm)) {
+    $countQuery .= " AND (a.Title LIKE ? OR a.Description LIKE ? OR ar.Name LIKE ?)";
+    $countParams[] = "%$searchTerm%";
+    $countParams[] = "%$searchTerm%";
+    $countParams[] = "%$searchTerm%";
+}
+if ($statusFilter === 'active') {
+    $countQuery .= " AND a.Status = 'active'";
+} elseif ($statusFilter === 'disabled') {
+    $countQuery .= " AND a.Status = 'disabled'";
+}
+
+$countStmt = $conn->prepare($countQuery);
+$countStmt->execute($countParams);
+$totalItems = $countStmt->fetchColumn();
+$totalPages = ceil($totalItems / $itemsPerPage);
+
+// Re-run the main query with LIMIT & OFFSET
+$query .= " LIMIT $itemsPerPage OFFSET $offset";
+$stmt = $conn->prepare($query);
+$stmt->execute($params);
+$artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
-<link rel="stylesheet" href="../../assets/css/view_artworks.css">
+<link rel="stylesheet" href="<?php echo BASE_URL ?>/Assets/css/view_artworks.css">
 
 <div class="container my-5" style="color: var(--color-text-light);">
     <h2 class="mb-4 text-center" style="color: var(--color-secondary); font-weight: 700;">Explore NFT Artworks</h2>
@@ -129,7 +195,7 @@ $artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php foreach ($artworks as $art): ?>
             <div class="col-md-4 mb-4">
                 <div class="card h-100 shadow-sm" style="background-color: var(--color-card-bg); color: var(--color-text-light); border-radius: 12px;">
-                    <img src="<?= htmlspecialchars($art['Photo']) ?>" class="card-img-top"
+                    <img src="<?php echo BASE_URL . "/" . htmlspecialchars($art['Photo']) ?>" class="card-img-top"
                         alt="<?= htmlspecialchars($art['Title']) ?>" style="height: 250px; object-fit: cover; border-radius: 12px 12px 0 0;">
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title" style="color: var(--color-secondary); font-weight: 700;"><?= htmlspecialchars($art['Title']) ?></h5>
@@ -166,6 +232,8 @@ $artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                 </div>
             </div>
+
+
 
             <!-- Edit Modal -->
             <div class="modal fade" id="editModal<?= $art['Artwork_ID'] ?>" tabindex="-1" aria-labelledby="editModalLabel<?= $art['Artwork_ID'] ?>" aria-hidden="true">
@@ -212,6 +280,28 @@ $artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
         <?php endforeach; ?>
+
+        <?php if ($totalPages > 1): ?>
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                            <a class="page-link" href="?<?= http_build_query(['search' => $searchTerm, 'status' => $statusFilter, 'page' => $page - 1]) ?>">Previous</a>
+                        </li>
+
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                                <a class="page-link" href="?<?= http_build_query(['search' => $searchTerm, 'status' => $statusFilter, 'page' => $i]) ?>">
+                                    <?= $i ?>
+                                </a>
+                            </li>
+                        <?php endfor; ?>
+
+                        <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                            <a class="page-link" href="?<?= http_build_query(['search' => $searchTerm, 'status' => $statusFilter, 'page' => $page + 1]) ?>">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            <?php endif; ?>
     </div>
 </div>
 

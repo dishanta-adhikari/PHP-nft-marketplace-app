@@ -1,12 +1,21 @@
 <?php
 session_start();
-require_once __DIR__ . "/../../Config/Config.php";
 require_once __DIR__ . "/../../App/App.php";
 require_once __DIR__ . "/../../Config/Url.php";
 include_once __DIR__ . "/../../Views/Components/header.php";
 
 $app = new App();
 $conn = $app->connect();
+
+// Redirect if already logged in
+if (isset($_SESSION['user_id'])) {
+    if ($_SESSION['user_role'] === 'admin') {
+        header("Location: " . VIEW_URL . "/admin/dashboard");
+    } else {
+        header("Location: " . VIEW_URL . "/user/dashboard");
+    }
+    exit();
+}
 
 $errors = [];
 
@@ -26,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($isAdmin && $user['Role'] !== 'admin') {
                 $errors[] = "You are not authorized as an admin.";
             } else {
+                session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['User_ID'];
                 $_SESSION['user_role'] = $user['Role'];
                 $_SESSION['user_name'] = $user['Name'];
@@ -45,10 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 
-<link rel="stylesheet" href="../../assets/css/login.css"> <!-- Reusing the same tube light style -->
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Assets/css/login.css">
 
 <div id="login-page" class="container tubelight-box side-light mt-5" style="max-width: 480px;">
-    <h2 class="mb-4 text-center">Login</h2>
+    <h2 class="mb-4 text-center">Log In</h2>
 
     <?php if (!empty($_SESSION['success'])): ?>
         <div class="alert alert-success" role="alert">
@@ -92,4 +102,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 </div>
 
-<?php include __DIR__ . "/../../Views/Components/footer.php"; ?>
+<?php include_once __DIR__ . "/../../Views/Components/footer.php"; ?>

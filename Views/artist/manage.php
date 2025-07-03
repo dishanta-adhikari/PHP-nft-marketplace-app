@@ -1,8 +1,12 @@
 <?php
 session_start();
-require_once __DIR__."/../../Config/Config.php";
-require_once __DIR__."/../../Config/Url.php";
-include_once __DIR__."/../../Views/admin/header.php"; // your PDO connection
+
+require_once __DIR__ . "/../../App/App.php";
+require_once __DIR__ . "/../../Config/Url.php";
+require_once __DIR__ . "/../../Views/Components/header.php";
+
+$app = new App();
+$conn = $app->connect();
 
 $errors = [];
 $success = "";
@@ -27,13 +31,13 @@ if (isset($_POST['create_artist'])) {
 
     if (empty($errors)) {
         // Check if email already exists
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM artist WHERE Email = ?");
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM artist WHERE Email = ?");
         $stmt->execute([$email]);
         if ($stmt->fetchColumn() > 0) {
             $errors[] = "Email already exists.";
         } else {
             // Insert new artist
-            $stmt = $pdo->prepare("INSERT INTO artist (Name, Email) VALUES (?, ?)");
+            $stmt = $conn->prepare("INSERT INTO artist (Name, Email) VALUES (?, ?)");
             if ($stmt->execute([$name, $email])) {
                 $success = "Artist added successfully.";
             } else {
@@ -58,13 +62,13 @@ if (isset($_POST['update_artist'])) {
 
     if (empty($errors)) {
         // Check if email exists for other artist
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM artist WHERE Email = ? AND Artist_ID != ?");
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM artist WHERE Email = ? AND Artist_ID != ?");
         $stmt->execute([$email, $id]);
         if ($stmt->fetchColumn() > 0) {
             $errors[] = "Email already exists for another artist.";
         } else {
             // Update artist
-            $stmt = $pdo->prepare("UPDATE artist SET Name = ?, Email = ? WHERE Artist_ID = ?");
+            $stmt = $conn->prepare("UPDATE artist SET Name = ?, Email = ? WHERE Artist_ID = ?");
             if ($stmt->execute([$name, $email, $id])) {
                 $success = "Artist updated successfully.";
             } else {
@@ -77,7 +81,7 @@ if (isset($_POST['update_artist'])) {
 // Handle Delete Artist
 if (isset($_POST['delete_artist'])) {
     $id = intval($_POST['artist_id'] ?? 0);
-    $stmt = $pdo->prepare("DELETE FROM artist WHERE Artist_ID = ?");
+    $stmt = $conn->prepare("DELETE FROM artist WHERE Artist_ID = ?");
     if ($stmt->execute([$id])) {
         $success = "Artist deleted successfully.";
     } else {
@@ -86,10 +90,10 @@ if (isset($_POST['delete_artist'])) {
 }
 
 // Fetch all artists
-$stmt = $pdo->query("SELECT * FROM artist ORDER BY Artist_ID DESC");
+$stmt = $conn->query("SELECT * FROM artist ORDER BY Artist_ID DESC");
 $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<link rel="stylesheet" href="../../assets/css/manage_artists.css">
+<link rel="stylesheet" href="<?php echo BASE_URL ?>/Assets/css/manage_artists.css">
 
 <div class="artist-manager container py-5">
 
@@ -110,7 +114,7 @@ $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="card-body p-0">
             <form method="POST" class="row g-3 align-items-center justify-content-center">
                 <div class="col-auto" style="min-width: 280px;">
-                    <label style="color: white;" for="name" class="form-label">New Artist Name</label>
+                    <label style="color: white;" for="name" class="form-label">Create Artist</label>
                     <input type="text" name="name" id="name" class="form-control" placeholder="Enter artist name" required />
                 </div>
                 <div class="col-auto" style="min-width: 280px;">
@@ -118,7 +122,7 @@ $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <input type="email" name="email" id="email" class="form-control" placeholder="Enter unique email" required />
                 </div>
                 <div class="col-auto align-self-end">
-                    <button type="submit" name="create_artist" class="btn btn-primary">Add Artist</button>
+                    <button type="submit" name="create_artist" class="btn btn-primary">Create</button>
                 </div>
             </form>
         </div>
@@ -129,7 +133,6 @@ $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <table class="table table-borderless text-center align-middle">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Artist Name</th>
                     <th>Email</th>
                     <th style="min-width: 240px;">Actions</th>
@@ -143,7 +146,6 @@ $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php else: ?>
                     <?php foreach ($artists as $artist): ?>
                         <tr>
-                            <td><?= htmlspecialchars($artist['Artist_ID']) ?></td>
                             <td><?= htmlspecialchars($artist['Name']) ?></td>
                             <td><?= htmlspecialchars($artist['Email']) ?></td>
                             <td>
@@ -224,6 +226,6 @@ $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="./js/manage_artists.js"></script>
+<script src="<?php echo BASE_URL ?>/Assets/js/artist.js"></script>
 
-<?php include __DIR__."../../Views/admin/footer.php"; ?>
+<?php require_once __DIR__ . "/../../Views/Components/footer.php"; ?>

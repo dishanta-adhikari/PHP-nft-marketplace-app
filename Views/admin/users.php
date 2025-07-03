@@ -1,28 +1,34 @@
 <?php
-require_once __DIR__."../../Config/Config.php";
-require_once __DIR__."../../Config/Url.php";
-include_once __DIR__."../../Views/admin/header.php";
+session_start();
 
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+require_once __DIR__ . "/../../App/App.php";
+require_once __DIR__ . "/../../Config/Url.php";
+require_once __DIR__ . "/../../Views/Components/header.php";
+
+$app = new App();
+$conn = $app->connect();
+
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     echo "<div class='alert alert-danger text-center'>Access Denied</div>";
-    exit;
+    header("Location: " . BASE_URL);
+    exit();
 }
 
 // Handle role change
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id'], $_POST['new_role'])) {
-    $stmt = $pdo->prepare("UPDATE user SET role = ? WHERE user_id = ?");
+    $stmt = $conn->prepare("UPDATE user SET role = ? WHERE user_id = ?");
     $stmt->execute([$_POST['new_role'], $_POST['user_id']]);
-    echo "<script>location.href='manage_users';</script>";
-    exit;
+    header("Location: ".VIEW_URL ."/admin/users");
+    exit();
 }
 
 // Fetch all users except current admin
-$stmt = $pdo->prepare("SELECT user_id, name, email, role FROM user WHERE user_id != ?");
+$stmt = $conn->prepare("SELECT user_id, name, email, role FROM user WHERE user_id != ?");
 $stmt->execute([$_SESSION['user_id']]);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<link rel="stylesheet" href="../../assets/css/manage_users.css">
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Assets/css/manage_users.css">
 <div class="container my-5">
     <h2 class="mb-4 text-center fw-bold" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
         Manage Users
@@ -105,4 +111,4 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </script>
 
 
-<?php include __DIR__."../../Views/admin/footer.php"; ?>
+<?php require_once __DIR__ . "/../../Views/Components/footer.php"; ?>

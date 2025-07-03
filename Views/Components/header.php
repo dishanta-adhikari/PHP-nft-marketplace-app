@@ -79,7 +79,7 @@ require_once __DIR__ . "/../../Config/Url.php";
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <?php if ($_SESSION['user_role'] === 'admin'): ?>
                             <li class="nav-item">
-                                <a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/admin/admin_panel">Dashboard</a>
+                                <a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/admin/dashboard">Dashboard</a>
                             </li>
                         <?php else: ?>
                             <li class="nav-item">
@@ -96,8 +96,8 @@ require_once __DIR__ . "/../../Config/Url.php";
                         </li>
 
                     <?php else: ?>
-                        <li class="nav-item"><a class="nav-link fw-bold" href="<?php echo BASE_URL; ?>/index">Home</a></li>
-                        <li class="nav-item"><a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/auth/login">Login</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold" href="<?php echo BASE_URL; ?>">Home</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/auth/login">Log In</a></li>
                         <li class="nav-item"><a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/auth/register">Register</a></li>
                     <?php endif; ?>
 

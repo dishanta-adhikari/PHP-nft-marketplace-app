@@ -1,14 +1,17 @@
 <?php
-include_once "/../../Config/Config.php";
-include_once "/../../Config/Url.php";
+
+require_once __DIR__ . "/../../App/App.php";
+require_once __DIR__ . "/../../Config/Url.php";
 
 session_start();
+$app = new App();
+$conn = $app->connect();
 
 
 // Only admins can access this page
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header("Location: login");
-    exit;
+    header("Location: " . VIEW_URL . "/auth/login");
+    exit();
 }
 
 $success = $error = "";
@@ -21,17 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $photo_path = '';
 
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-        $target_dir = "/../../assets/uploads/";
+        $target_dir = "/../../uploads/";
         if (!is_dir($target_dir)) {
             mkdir($target_dir, 0777, true);
         }
 
-        $photo_path = $target_dir . basename($_FILES["photo"]["name"]);
+        $photo_path = 'uploads/' . basename($_FILES["photo"]["name"]);
         move_uploaded_file($_FILES["photo"]["tmp_name"], $photo_path);
     }
 
     if ($title && $price && $artist_id && $photo_path) {
-        $stmt = $pdo->prepare("INSERT INTO artwork (Title, Price, Photo, Description, Artist_ID) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO artwork (Title, Price, Photo, Description, Artist_ID) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$title, $price, $photo_path, $description, $artist_id]);
         $success = "NFT artwork added successfully.";
     } else {
@@ -40,12 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-<?php include "header.php"; ?>
-<link rel="stylesheet" href="../../assets/css/add_nft.css">
-
+<?php require_once __DIR__ . "/../Components/header.php"; ?>
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Assets/css/add_nft.css">
 
 <div class="container my-5">
-    <h2>Add New NFT Artwork</h2>
+    <h2>Create NFT</h2>
 
     <?php if ($success): ?>
         <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
@@ -75,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <select id="artist_id" name="artist_id" class="form-select" required>
                 <option value="">-- Select Artist --</option>
                 <?php
-                $artists = $pdo->query("SELECT * FROM artist")->fetchAll();
+                $artists = $conn->query("SELECT * FROM artist")->fetchAll();
                 foreach ($artists as $artist) {
                     echo "<option value=\"" . htmlspecialchars($artist['Artist_ID']) . "\">" . htmlspecialchars($artist['Name']) . "</option>";
                 }
@@ -86,4 +88,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </form>
 </div>
 
-<?php include "footer.php"; ?>
+<?php require_once __DIR__ . "/../Components/footer.php"; ?>
