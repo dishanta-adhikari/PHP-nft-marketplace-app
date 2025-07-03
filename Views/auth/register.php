@@ -1,6 +1,11 @@
 <?php
 session_start();
-include "db.php";
+require_once __DIR__."/../../App/App.php";
+require_once __DIR__."/../../Config/Url.php";
+include_once __DIR__."/../../Views/Components/header.php";
+
+$app = new App();
+$conn = $app->connect();
 
 $errors = [];
 
@@ -20,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check if email exists
     if (empty($errors)) {
-        $stmt = $pdo->prepare("SELECT User_ID FROM user WHERE Email = ?");
+        $stmt = $conn->prepare("SELECT User_ID FROM user WHERE Email = ?");
         $stmt->execute([$email]);
         if ($stmt->fetch()) {
             $errors[] = "Email is already registered.";
@@ -32,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
         // Insert user
-        $stmt = $pdo->prepare("INSERT INTO user (Name, Email, DOB, Role, Password) VALUES (?, ?, ?, 'user', ?)");
+        $stmt = $conn->prepare("INSERT INTO user (Name, Email, DOB, Role, Password) VALUES (?, ?, ?, 'user', ?)");
         $stmt->execute([$name, $email, $dob, $passwordHash]);
 
         $_SESSION['success'] = "Registration successful! Please login.";
@@ -42,9 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<?php include "header.php"; ?>
 
-<link rel="stylesheet" href="./css/register.css">
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Assets/css/register.css">
 
 <div id="register-page" class="container tubelight-box side-light mt-5" style="max-width: 480px;">
     <h2 class="mb-4 text-center">Register</h2>
@@ -93,4 +97,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 
-<?php include "footer.php"; ?>
+<?php include __DIR__."/../../Views/Components/footer.php"; ?>

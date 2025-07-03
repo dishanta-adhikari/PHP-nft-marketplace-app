@@ -1,7 +1,8 @@
 <?php
 session_start();
-include "db.php";
-include "header.php"; // your PDO connection
+require_once __DIR__."/../../Config/Config.php";
+require_once __DIR__."/../../Config/Url.php";
+include_once __DIR__."/../../Views/admin/header.php"; // your PDO connection
 
 $errors = [];
 $success = "";
@@ -88,7 +89,7 @@ if (isset($_POST['delete_artist'])) {
 $stmt = $pdo->query("SELECT * FROM artist ORDER BY Artist_ID DESC");
 $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<link rel="stylesheet" href="./css/manage_artists.css">
+<link rel="stylesheet" href="../../assets/css/manage_artists.css">
 
 <div class="artist-manager container py-5">
 
@@ -225,4 +226,4 @@ $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script src="./js/manage_artists.js"></script>
 
-<?php include "footer.php"; ?>
+<?php include __DIR__."../../Views/admin/footer.php"; ?>

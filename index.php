@@ -1,30 +1,40 @@
 <?php
 session_start();
-include "db.php";
-include "header.php";
+require_once __DIR__ . "/App/App.php";
+require_once __DIR__ . "/Config/Url.php";
+include_once __DIR__ . "/Views/Components/header.php";
+
+$app = new App();
+$conn = $app->connect();
 
 // Get user ID if logged in (optional, can be null)
 $userID = $_SESSION['user_id'] ?? null;
 
-// Handle search query
 $search = $_GET['search'] ?? '';
-$searchQuery = "%" . $search . "%";
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = 6;
+
+$searchQuery = '%' . $search . '%';
 
 if ($search) {
-    $stmt = $pdo->prepare("SELECT a.*, ar.Name AS ArtistName 
-                           FROM artwork a 
-                           JOIN artist ar ON a.Artist_ID = ar.Artist_ID 
-                           WHERE (a.Title LIKE ? OR a.Description LIKE ? OR ar.Name LIKE ?)
-                           AND a.Status = 'active'");
-    $stmt->execute([$searchQuery, $searchQuery, $searchQuery]);
+    $sql = "SELECT a.*, ar.Name AS ArtistName 
+            FROM artwork a 
+            JOIN artist ar ON a.Artist_ID = ar.Artist_ID 
+            WHERE (a.Title LIKE ? OR a.Description LIKE ? OR ar.Name LIKE ?) 
+            AND a.Status = 'active'";
+    $params = [$searchQuery, $searchQuery, $searchQuery];
 } else {
-    $stmt = $pdo->prepare("SELECT a.*, ar.Name AS ArtistName 
-                           FROM artwork a 
-                           JOIN artist ar ON a.Artist_ID = ar.Artist_ID 
-                           WHERE a.Status = 'active'");
-    $stmt->execute();
+    $sql = "SELECT a.*, ar.Name AS ArtistName 
+            FROM artwork a 
+            JOIN artist ar ON a.Artist_ID = ar.Artist_ID 
+            WHERE a.Status = 'active'";
+    $params = [];
 }
-$artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$results = $app->paginate($sql, $params, $page, $limit);
+$artworks = $results['data'];
+$totalPages = $results['pages'];
+
 ?>
 
 <!DOCTYPE html>
@@ -41,7 +51,7 @@ $artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- Google Fonts: Poppins & Orbitron -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Poppins&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/Assets/css/index.css">
 
     <style>
         .sold-badge {
@@ -84,7 +94,7 @@ $artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <?php foreach ($artworks as $art): ?>
                 <?php
-                $checkStmt = $pdo->prepare("SELECT 1 FROM nft WHERE Artwork_ID = ? AND Is_Paid = 1 LIMIT 1");
+                $checkStmt = $conn->prepare("SELECT 1 FROM nft WHERE Artwork_ID = ? AND Is_Paid = 1 LIMIT 1");
                 $checkStmt->execute([$art['Artwork_ID']]);
                 $isSold = $checkStmt->fetchColumn() ? true : false;
                 echo "<!-- Artwork ID: {$art['Artwork_ID']} Sold? " . ($isSold ? 'YES' : 'NO') . " -->";
@@ -102,12 +112,33 @@ $artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php if ($isSold): ?>
                                 <button class="btn btn-secondary w-100" disabled>Sold</button>
                             <?php else: ?>
-                                <a href="artwork?id=<?= $art['Artwork_ID'] ?>" class="btn btn-primary w-100" aria-label="View and mint NFT <?= htmlspecialchars($art['Title']) ?>">View & Mint NFT</a>
+                                <a href="<?php echo VIEW_URL; ?>/artwork/view?id=<?= $art['Artwork_ID'] ?>" class="btn btn-primary w-100" aria-label="View and mint NFT <?= htmlspecialchars($art['Title']) ?>">View & Mint NFT</a>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
+
+            <!-- pagination -->
+            <?php if ($totalPages > 1): ?>
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                            <a class="page-link" href="?search=<?= urlencode($search) ?>&page=<?= $page - 1 ?>">Previous</a>
+                        </li>
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                                <a class="page-link" href="?search=<?= urlencode($search) ?>&page=<?= $i ?>"><?= $i ?></a>
+                            </li>
+                        <?php endfor; ?>
+                        <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                            <a class="page-link" href="?search=<?= urlencode($search) ?>&page=<?= $page + 1 ?>">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            <?php endif; ?>
+
+
         </div>
     </div>
 
@@ -117,4 +148,4 @@ $artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 </html>
 
-<?php include "footer.php"; ?>
+<?php include __DIR__ . "/Views/Components/footer.php"; ?>

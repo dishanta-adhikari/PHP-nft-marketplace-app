@@ -1,7 +1,11 @@
 <?php
 session_start();
-include "db.php";
-include "header.php";
+require_once __DIR__ . "/../../App/App.php";
+require_once __DIR__ . "/../../Config/Url.php";
+include_once __DIR__ . "/../../Views/Components/header.php";
+
+$app = new App();
+$conn = $app->connect();
 
 if (!isset($_GET['id'])) {
     echo '<div class="container my-4"><div class="alert alert-danger">Artwork not specified.</div></div>';
@@ -10,7 +14,7 @@ if (!isset($_GET['id'])) {
 
 $artworkID = (int)$_GET['id'];
 
-$stmt = $pdo->prepare("SELECT a.*, ar.Name AS ArtistName FROM artwork a JOIN artist ar ON a.Artist_ID = ar.Artist_ID WHERE a.Artwork_ID = ?");
+$stmt = $conn->prepare("SELECT a.*, ar.Name AS ArtistName FROM artwork a JOIN artist ar ON a.Artist_ID = ar.Artist_ID WHERE a.Artwork_ID = ?");
 $stmt->execute([$artworkID]);
 $artwork = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -20,11 +24,11 @@ if (!$artwork) {
 }
 ?>
 
-<link rel="stylesheet" href="./css/artwork.css">
+<link rel="stylesheet" href="<?php echo BASE_URL ?>/assets/css/artwork.css">
 <div class="container my-4">
     <div class="row g-4">
         <div class="col-md-6 text-center">
-            <img src="<?= htmlspecialchars($artwork['Photo']) ?>"
+            <img src="<?php echo BASE_URL . "/" . htmlspecialchars($artwork['Photo']) ?>"
                 alt="<?= htmlspecialchars($artwork['Title']) ?>"
                 class="img-fluid nft-artwork-img">
         </div>
@@ -36,16 +40,16 @@ if (!$artwork) {
             <p class="nft-artwork-price">Price: <span>$<?= number_format($artwork['Price'], 2) ?></span></p>
 
             <?php if (isset($_SESSION['user_id'])): ?>
-                <form method="post" action="mint_nft" class="mt-4">
+                <form method="post" action="<?php echo VIEW_URL; ?>/artwork/mint" class="mt-4">
                     <input type="hidden" name="artwork_id" value="<?= $artworkID ?>">
                     <button type="submit" class="nft-mint-btn">Mint NFT</button>
                 </form>
             <?php else: ?>
-                <p class="nft-login-prompt">Please <a href="login">login</a> to mint this NFT.</p>
+                <p class="nft-login-prompt">Please <a href="<?php echo VIEW_URL; ?>/auth/login">login</a> to mint this NFT.</p>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
 
-<?php include "footer.php"; ?>
+<?php include_once __DIR__ . "/../../Views/Components/footer.php"; ?>

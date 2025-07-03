@@ -1,6 +1,12 @@
 <?php
 session_start();
-include "db.php";
+require_once __DIR__ . "/../../Config/Config.php";
+require_once __DIR__ . "/../../App/App.php";
+require_once __DIR__ . "/../../Config/Url.php";
+include_once __DIR__ . "/../../Views/Components/header.php";
+
+$app = new App();
+$conn = $app->connect();
 
 $errors = [];
 
@@ -12,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$email || !$password) {
         $errors[] = "Email and password are required.";
     } else {
-        $stmt = $pdo->prepare("SELECT User_ID, Name, Password, Role FROM user WHERE Email = ?");
+        $stmt = $conn->prepare("SELECT User_ID, Name, Password, Role FROM user WHERE Email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -25,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $user['Name'];
 
                 if ($user['Role'] === 'admin') {
-                    header("Location: admin_panel");
+                    header("Location: " . VIEW_URL . "/admin/dashboard");
                 } else {
-                    header("Location: index");
+                    header("Location: " . BASE_URL . "/");
                 }
                 exit;
             }
@@ -38,9 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<?php include "header.php"; ?>
 
-<link rel="stylesheet" href="./css/login.css"> <!-- Reusing the same tube light style -->
+<link rel="stylesheet" href="../../assets/css/login.css"> <!-- Reusing the same tube light style -->
 
 <div id="login-page" class="container tubelight-box side-light mt-5" style="max-width: 480px;">
     <h2 class="mb-4 text-center">Login</h2>
@@ -82,9 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit" class="btn btn-primary w-100">Login</button>
 
         <div class="mt-3 text-center">
-            <a href="register" class="btn btn-link p-0">Don't have an account? Register</a>
+            <a href="<?php echo VIEW_URL; ?>/auth/register" class="btn btn-link p-0">Don't have an account? Register</a>
         </div>
     </form>
 </div>
 
-<?php include "footer.php"; ?>
+<?php include __DIR__ . "/../../Views/Components/footer.php"; ?>

@@ -1,6 +1,11 @@
 <?php
+
 session_start();
-include "db.php";
+require_once __DIR__."/../../App/App.php";
+require_once __DIR__."/../../Config/Url.php";
+
+$app = new App();
+$conn = $app->connect();
 
 header('Content-Type: application/json');
 
@@ -13,10 +18,10 @@ if (!$userID || !$nftID) {
 }
 
 try {
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Get price and ownership
-    $stmt = $pdo->prepare("
+    $stmt = $conn->prepare("
         SELECT a.Price 
         FROM nft 
         JOIN artwork a ON nft.Artwork_ID = a.Artwork_ID 
@@ -34,14 +39,14 @@ try {
     $price = $nft['Price'];
 
     // Insert transaction (using backticks for reserved word)
-    $stmt = $pdo->prepare("
+    $stmt = $conn->prepare("
         INSERT INTO `transaction` (Amount, Sender, Receiver, NFT_ID) 
         VALUES (?, ?, ?, ?)
     ");
     $stmt->execute([$price, $userID, 0, $nftID]);
 
     // Update nft to mark as paid
-    $stmt = $pdo->prepare("UPDATE nft SET Is_Paid = 1 WHERE NFT_ID = ?");
+    $stmt = $conn->prepare("UPDATE nft SET Is_Paid = 1 WHERE NFT_ID = ?");
     $stmt->execute([$nftID]);
 
     echo json_encode(['success' => true]);

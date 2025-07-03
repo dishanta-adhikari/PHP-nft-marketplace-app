@@ -1,6 +1,9 @@
 <?php
+include_once "/../../Config/Config.php";
+include_once "/../../Config/Url.php";
+
 session_start();
-include "db.php";
+
 
 // Only admins can access this page
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
@@ -18,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $photo_path = '';
 
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-        $target_dir = "uploads/";
+        $target_dir = "/../../assets/uploads/";
         if (!is_dir($target_dir)) {
             mkdir($target_dir, 0777, true);
         }
@@ -38,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 
 <?php include "header.php"; ?>
-<link rel="stylesheet" href="./css/add_nft.css">
+<link rel="stylesheet" href="../../assets/css/add_nft.css">
 
 
 <div class="container my-5">

@@ -1,6 +1,7 @@
 <?php
-include "db.php";
-include "header.php";
+require_once __DIR__."../../Config/Config.php";
+require_once __DIR__."../../Config/Url.php";
+include_once __DIR__."../../Views/user/header.php";
 
 // Handle enable/disable and edit actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -82,7 +83,7 @@ $stmt->execute($params);
 $artworks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<link rel="stylesheet" href="./css/view_artworks.css">
+<link rel="stylesheet" href="../../assets/css/view_artworks.css">
 
 <div class="container my-5" style="color: var(--color-text-light);">
     <h2 class="mb-4 text-center" style="color: var(--color-secondary); font-weight: 700;">Explore NFT Artworks</h2>

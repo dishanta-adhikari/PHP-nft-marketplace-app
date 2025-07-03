@@ -1,7 +1,12 @@
 <?php
 session_start();
-include "db.php";
-include "header.php";
+
+require_once __DIR__ . "/../../App/App.php";
+require_once __DIR__ . "/../../Config/Url.php";
+include_once __DIR__ . "/../../Views/Components/header.php";
+
+$app = new App();
+$conn = $app->connect();
 
 // Check if admin is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -10,11 +15,11 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $adminId = $_SESSION['user_id'];
-$stmt = $pdo->prepare("SELECT Name FROM user WHERE User_ID = ?");
+$stmt = $conn->prepare("SELECT Name FROM user WHERE User_ID = ?");
 $stmt->execute([$adminId]);
 $admin = $stmt->fetch();
 ?>
-<link rel="stylesheet" href="./css/admin_panel.css">
+<link rel="stylesheet" href="<?php echo BASE_URL ?>/assets/css/admin_panel.css">
 <div class="nft-dashboard-container nft-fade-slide-in">
 
     <h2 class="nft-text-center mb-4">Admin Dashboard</h2>
@@ -28,7 +33,7 @@ $admin = $stmt->fetch();
         <div class="nft-card">
             <h5 class="nft-card-title">Add New NFT</h5>
             <p class="nft-card-text">Upload and manage NFT artworks.</p>
-            <a href="add_nft" class="nft-btn-light">Go</a>
+            <a href="<?php echo VIEW_URL; ?>/admin/create-nft" class="nft-btn-light">Go</a>
         </div>
 
         <div class="nft-card">
@@ -53,4 +58,4 @@ $admin = $stmt->fetch();
 
 </div>
 
-<?php include "footer.php"; ?>
+<?php include_once __DIR__ . "/../../Views/Components/footer.php"; ?>

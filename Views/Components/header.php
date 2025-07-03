@@ -1,7 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . "/../../Config/Url.php";
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -62,9 +61,9 @@ if (session_status() === PHP_SESSION_NONE) {
         <div class="container">
             <?php
             // Determine brand link based on role
-            $brandLink = "index";
+            $brandLink = BASE_URL;
             if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
-                $brandLink = "admin_panel";
+                $brandLink = VIEW_URL . "/admin/dashboard";
             }
             ?>
             <a class="navbar-brand fw-bold" href="<?= htmlspecialchars($brandLink) ?>">NFT Marketplace</a>
@@ -80,26 +79,26 @@ if (session_status() === PHP_SESSION_NONE) {
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <?php if ($_SESSION['user_role'] === 'admin'): ?>
                             <li class="nav-item">
-                                <a class="nav-link" href="admin_panel">Dashboard</a>
+                                <a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/admin/admin_panel">Dashboard</a>
                             </li>
                         <?php else: ?>
                             <li class="nav-item">
-                                <a class="nav-link" href="index">Home</a>
+                                <a class="nav-link fw-bold" href="<?php echo BASE_URL; ?>">Home</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="dashboard">Dashboard</a>
+                                <a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/user/dashboard">Dashboard</a>
                             </li>
 
                         <?php endif; ?>
 
                         <li class="nav-item">
-                            <a class="nav-link" href="logout">Logout (<?= htmlspecialchars($_SESSION['user_name']) ?>)</a>
+                            <a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/auth/logout">Logout (<?= htmlspecialchars($_SESSION['user_name']) ?>)</a>
                         </li>
 
                     <?php else: ?>
-                        <li class="nav-item"><a class="nav-link" href="index">Home</a></li>
-                        <li class="nav-item"><a class="nav-link" href="login">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="register">Register</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold" href="<?php echo BASE_URL; ?>/index">Home</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/auth/login">Login</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold" href="<?php echo VIEW_URL; ?>/auth/register">Register</a></li>
                     <?php endif; ?>
 
                 </ul>

@@ -1,6 +1,7 @@
 <?php
-include "db.php";
-include "header.php";
+require_once __DIR__."../../Config/Config.php";
+require_once __DIR__."../../Config/Url.php";
+include_once __DIR__."../../Views/admin/header.php";
 
 if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
     echo "<div class='alert alert-danger text-center'>Access Denied</div>";
@@ -21,7 +22,7 @@ $stmt->execute([$_SESSION['user_id']]);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<link rel="stylesheet" href="./css/manage_users.css">
+<link rel="stylesheet" href="../../assets/css/manage_users.css">
 <div class="container my-5">
     <h2 class="mb-4 text-center fw-bold" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
         Manage Users
@@ -104,4 +105,4 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </script>
 
 
-<?php include "footer.php"; ?>
+<?php include __DIR__."../../Views/admin/footer.php"; ?>
