@@ -1,4 +1,85 @@
 RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^([^\.]+)$ $1.php [NC,L]
-RewriteRule ^([^\.]+)$ $1.html [NC,L]
+RewriteBase /PHP-nft-marketplace-app
+
+# Allow real files and directories to pass through
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# ============================
+# Custom Routes (Specific First)
+# ============================
+
+# /admin/lab/details/{id}
+#RewriteRule ^admin/lab/details/([0-9]+)/?$ src/views/admin/lab/details.php?id=$1 [L,QSA]
+
+# /admin/lab/images/{id}
+#RewriteRule ^admin/lab/images/([0-9]+)/?$ src/views/admin/lab/images.php?id=$1 [L,QSA]
+
+# /admin/lab/videos/{id}
+#RewriteRule ^admin/lab/videos/([0-9]+)/?$ src/views/admin/lab/videos.php?id=$1 [L,QSA]
+
+# /admin/equipment/{id}
+#RewriteRule ^admin/equipment/([0-9]+)/?$ src/views/admin/equipment/index.php?id=$1 [L,QSA]
+
+# /admin/lab/view/{id}
+#RewriteRule ^admin/lab/view/([0-9]+)/?$ src/views/admin/lab/view.php?id=$1 [L,QSA]
+
+# /admin/lab/{id}/{search?}
+#RewriteRule ^admin/lab/([0-9]+)(?:/([^/]+))?/?$ src/views/admin/lab/index.php?id=$1&search=$2 [L,QSA]
+
+# /admin/lab → show all labs
+#RewriteRule ^admin/lab/?$ src/views/admin/lab/index.php [L,QSA]
+
+# ============================
+# User Routes (Specific First)
+# ============================
+
+# /user/laboratory/update/{id}
+#RewriteRule ^user/laboratory/update/([0-9]+)/?$ src/views/user/laboratory/update.php?id=$1 [L,QSA]
+
+# /user/laboratory/details/{id}
+#RewriteRule ^user/laboratory/details/([0-9]+)/?$ src/views/user/laboratory/details.php?id=$1 [L,QSA]
+
+# /user/laboratory/images/{id}
+#RewriteRule ^user/laboratory/images/([0-9]+)/?$ src/views/user/laboratory/images.php?id=$1 [L,QSA]
+
+# /user/laboratory/videos/{id}
+#RewriteRule ^user/laboratory/videos/([0-9]+)/?$ src/views/user/laboratory/videos.php?id=$1 [L,QSA]
+
+# /user/equipment/{id}
+#RewriteRule ^user/equipment/([0-9]+)/?$ src/views/user/equipment/index.php?id=$1 [L,QSA]
+
+# /user/equipment/create/{id}
+#RewriteRule ^user/equipment/create/([0-9]+)/?$ src/views/user/equipment/create.php?id=$1 [L,QSA]
+
+# ============================
+# Auth routes (login, register, etc.)
+# ============================
+RewriteRule ^(login|register|logout|forgot-password|reset-password|hasPhone|verify|verify-institution)/?$ src/views/auth/$1.php [NC,L]
+
+# ============================
+# Generic routes: Try views/{path}.php
+# ============================
+
+# src/views/{path}.php
+RewriteCond %{DOCUMENT_ROOT}/PHP-nft-marketplace-app/src/views/$1.php -f
+RewriteRule ^([a-zA-Z0-9/_-]+)$ src/views/$1.php [NC,L]
+
+# src/views/{path}/index.php
+RewriteCond %{DOCUMENT_ROOT}/PHP-nft-marketplace-app/src/views/$1/index.php -f
+RewriteRule ^([a-zA-Z0-9/_-]+)$ src/views/$1/index.php [NC,L]
+
+# Optional .html routes
+RewriteCond %{DOCUMENT_ROOT}/PHP-nft-marketplace-app/src/views/$1.html -f
+RewriteRule ^([a-zA-Z0-9/_-]+)\.html$ src/views/$1.html [NC,L]
+
+# Redirect root with trailing slash to no slash
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+PHP-nft-marketplace-app/+\s [NC]
+RewriteRule ^$ /PHP-instuvision-ahsec-app [R=301,L]
+
+# ============================
+# Custom Error Pages
+# ============================
+#ErrorDocument 404 /PHP-instuvision-ahsec-app/src/views/errors/404.php
+#ErrorDocument 500 /PHP-instuvision-ahsec-app/src/views/errors/500.php
