@@ -17,7 +17,11 @@ class User
     {
         $stmt = $this->con->prepare("INSERT INTO users (Name, Email, DOB, Role, Password) VALUES (?, ?, ?, ?, ?)");
         if ($stmt->execute([$values['Name'], $values['Email'], $values['DOB'], $values['Role'], $values['Password']])) {
-            return true;
+            return [
+                'user_id' => $this->con->lastInsertId() ?? '',
+                'name' => $values['Name'],
+                'role' => $values['Role']
+            ];
         }
         return false;
     }

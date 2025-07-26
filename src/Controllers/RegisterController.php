@@ -66,18 +66,16 @@ class RegisterController
             $created = $this->User->create($values);
 
             if (!$created) {
-                throw new Exception('Failed to Create User !');
+                throw new Exception('Failed to Create User!');
             }
-
-            $user = $this->User->getByEmail($email);
 
             session_regenerate_id(true);
 
-            $_SESSION['user_id'] = $user['User_ID'];
-            $_SESSION['role'] = $user['Role'];
-            $_SESSION['user_name'] = $user['Name'];
+            $_SESSION['user_id'] = $created['user_id'];
+            $_SESSION['role'] = $created['role'];
+            $_SESSION['user_name'] = $created['name'];
 
-            $_SESSION['success'] = 'Welcome ' . $user['Name'];
+            $_SESSION['success'] = 'Registration Successful. Welcome ' . $created['name'] . '.';
             header("Location: " . APP_URL);
             exit;
         } catch (Exception $e) {
