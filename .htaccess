@@ -15,46 +15,6 @@ RewriteRule ^artwork/([0-9]+)/?$ src/views/artwork/index.php?id=$1 [L,QSA]
 # /admin/artwork/create/123
 RewriteRule ^admin/artwork/create/?([0-9]*)$ src/views/admin/artwork/create.php?id=$1 [L,QSA]
 
-# /admin/lab/images/{id}
-#RewriteRule ^admin/lab/images/([0-9]+)/?$ src/views/admin/lab/images.php?id=$1 [L,QSA]
-
-# /admin/lab/videos/{id}
-#RewriteRule ^admin/lab/videos/([0-9]+)/?$ src/views/admin/lab/videos.php?id=$1 [L,QSA]
-
-# /admin/equipment/{id}
-#RewriteRule ^admin/equipment/([0-9]+)/?$ src/views/admin/equipment/index.php?id=$1 [L,QSA]
-
-# /admin/lab/view/{id}
-#RewriteRule ^admin/lab/view/([0-9]+)/?$ src/views/admin/lab/view.php?id=$1 [L,QSA]
-
-# /admin/lab/{id}/{search?}
-#RewriteRule ^admin/lab/([0-9]+)(?:/([^/]+))?/?$ src/views/admin/lab/index.php?id=$1&search=$2 [L,QSA]
-
-# /admin/lab → show all labs
-#RewriteRule ^admin/lab/?$ src/views/admin/lab/index.php [L,QSA]
-
-# ============================
-# User Routes (Specific First)
-# ============================
-
-# /user/laboratory/update/{id}
-#RewriteRule ^user/laboratory/update/([0-9]+)/?$ src/views/user/laboratory/update.php?id=$1 [L,QSA]
-
-# /user/laboratory/details/{id}
-#RewriteRule ^user/laboratory/details/([0-9]+)/?$ src/views/user/laboratory/details.php?id=$1 [L,QSA]
-
-# /user/laboratory/images/{id}
-#RewriteRule ^user/laboratory/images/([0-9]+)/?$ src/views/user/laboratory/images.php?id=$1 [L,QSA]
-
-# /user/laboratory/videos/{id}
-#RewriteRule ^user/laboratory/videos/([0-9]+)/?$ src/views/user/laboratory/videos.php?id=$1 [L,QSA]
-
-# /user/equipment/{id}
-#RewriteRule ^user/equipment/([0-9]+)/?$ src/views/user/equipment/index.php?id=$1 [L,QSA]
-
-# /user/equipment/create/{id}
-#RewriteRule ^user/equipment/create/([0-9]+)/?$ src/views/user/equipment/create.php?id=$1 [L,QSA]
-
 # ============================
 # Auth routes (login, register, etc.)
 # ============================
@@ -78,10 +38,10 @@ RewriteRule ^([a-zA-Z0-9/_-]+)\.html$ src/views/$1.html [NC,L]
 
 # Redirect root with trailing slash to no slash
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+PHP-nft-marketplace-app/+\s [NC]
-RewriteRule ^$ /PHP-instuvision-ahsec-app [R=301,L]
+RewriteRule ^$ /PHP-nft-marketplace-app [R=301,L]
+
 
 # ============================
-# Custom Error Pages
+# Final fallback for 404
 # ============================
-#ErrorDocument 404 /PHP-instuvision-ahsec-app/src/views/errors/404.php
-#ErrorDocument 500 /PHP-instuvision-ahsec-app/src/views/errors/500.php
+RewriteRule ^.*$ src/views/errors/404.php [L]

@@ -8,3 +8,6 @@ require_once __DIR__ . '/config/env.php';            // load .env
 require_once __DIR__ . '/config/constants.php';      // defined constants - APP_URL,AUTH_URL
 
 require_once __DIR__ . '/config/Database.php';       // returns db $conn
+
+http_response_code(404);
+http_response_code(500);

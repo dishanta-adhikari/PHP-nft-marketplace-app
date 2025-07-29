@@ -16,12 +16,12 @@ class NFTController
     public function mint()
     {
         if (!isset($_SESSION['user_id'])) {
-            header("Location: " . APP_URL . "/auth/login");
+            echo "<script>window.location.href = '" . APP_URL . "/login';</script>";
             exit;
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['artwork_id'])) {
-            header("Location: " . APP_URL);
+            echo "<script>window.location.href = '" . APP_URL . "';</script>";
             exit;
         }
 
@@ -38,9 +38,10 @@ class NFTController
             }
         }
 
-        header("Location: " . APP_URL . "/user/dashboard");
+        echo "<script>window.location.href = '" . APP_URL . "/user/dashboard';</script>";
         exit;
     }
+
 
     public function getUserNFTs(int $userId, int $page = 1, int $limit = 6): array
     {
