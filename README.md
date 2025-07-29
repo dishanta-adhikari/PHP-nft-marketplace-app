@@ -1,6 +1,6 @@
 # NFT Marketplace App
 
-A robust NFT marketplace developed using PHP, MySQL, and Bootstrap. Tailored for artists and collectors, it enables artwork publishing, browsing. The system includes secure authentication, role-based dashboards, artwork management, and a responsive user interface.
+A robust NFT marketplace developed using PHP, MySQL, and Bootstrap. Tailored for digital artists and collectors, it streamlines the process of creating, showcasing, and purchasing NFT artworks. The system includes secure authentication, role-based dashboards, artwork management, simulated purchases, and a responsive user interface.
 
 ---
 
@@ -10,17 +10,17 @@ A robust NFT marketplace developed using PHP, MySQL, and Bootstrap. Tailored for
 
 - **User Authentication** – Secure login system with session management
 - **Role-Based Access** – Separate dashboards for Admin and User roles
-- **NFT Management** – Users can upload, list, and manage NFTs with images
-- **Artist Management** – Admins can add, edit, and delete artist profiles
-- **Simulated Purchase System** – Demo payment modal for artwork purchases
-- **Pagination** – Paginated views for browsing NFTs
+- **NFT Management** – Users can create, edit, and delete their NFT listings
+- **Artist Management** – Admins can manage artist profiles
+- **Simulated Purchase System** – Allows users to simulate artwork purchases
+- **Duplicate Purchase Prevention** – Prevents buying the same artwork multiple times
 
 ### Technical Features
 
 - **MVC Architecture** – Clean separation of Controllers, Views, and Models
 - **Database Security** – Uses prepared statements to guard against SQL injection
 - **Responsive UI** – Mobile-friendly design powered by Bootstrap
-- **File Uploads** – Supports secure artwork image uploads
+- **File Uploads** – Supports secure image uploads for artworks
 - **Session Management** – Ensures proper login sessions and access control
 
 ---
@@ -55,27 +55,34 @@ C:/xampp/htdocs/
 
 - Open phpMyAdmin
 - Create a database (e.g., `nft_marketplace_db`)
-- Import the provided SQL file (if available)
+- Import the provided SQL file
+- Update the database credentials in `Config/Config.php`
 
 ### Environment Configuration
 
-Update the following values in `Config/Config.php`:
-
-```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'nft_marketplace_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('APP_URL', 'http://localhost/nft-marketplace-app');
+```bash
+cp .env.example .env
 ```
 
-### Install Dependencies (If Using Composer)
+Edit `.env` with:
+
+```env
+DB_HOST=localhost
+DB_NAME=nft_marketplace_db
+DB_USER=root
+DB_PASS=
+APP_URL=http://localhost/nft-marketplace-app
+```
+
+### Install Dependencies
 
 ```bash
 composer install
 ```
 
-### Run the App
+---
+
+## Run the App
 
 Open in your browser:
 
@@ -89,22 +96,24 @@ http://localhost/nft-marketplace-app
 
 ### Admin
 
-- Manage artists
-- View and manage all NFTs
-- Simulated payments overview
+- Manage artist accounts
+- View and moderate all NFT listings
+- Monitor purchase simulations
+- Manage platform-wide content
 
 ### User
 
-- Upload and list NFT artworks
-- Browse and purchase NFTs
-- View personal listings
+- Browse NFT artworks
+- Create and manage own NFT listings
+- Simulate artwork purchases
+- Manage personal profile
 
 ---
 
 ## Security Highlights
 
 - **Prepared Statements** to prevent SQL Injection
-- **File Validation** for secure uploads
+- **File Validation** for secure image uploads
 - **Session-Based Authentication**
 - **Input Validation** (Client & Server-side)
 - **XSS Protection** through output escaping
@@ -113,10 +122,8 @@ http://localhost/nft-marketplace-app
 
 ## License
 
-This project is for **educational/demo purposes** and is not intended for production use.
+This project is open-source/educational/demo purposes and available under the MIT License.
 
 ---
 
-## Credits
-
-Made with ❤️ using PHP.
+**Made with ❤️ to empower digital creators and collectors.**
