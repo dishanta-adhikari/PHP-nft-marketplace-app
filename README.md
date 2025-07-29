@@ -1,6 +1,6 @@
 # NFT Marketplace App
 
-A robust NFT marketplace developed using PHP, MySQL, and Bootstrap. Tailored for artists and collectors, it enables artwork publishing, browsing, and digital asset trading. The system includes secure authentication, role-based dashboards, artwork management, and a responsive user interface.
+A robust NFT marketplace developed using PHP, MySQL, and Bootstrap. Tailored for artists and collectors, it enables artwork publishing, browsing. The system includes secure authentication, role-based dashboards, artwork management, and a responsive user interface.
 
 ---
 
