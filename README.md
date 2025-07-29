@@ -1,72 +1,122 @@
 # NFT Marketplace App
 
-A web-based NFT marketplace built with PHP and MySQL, allowing users to buy, sell, and manage digital artworks as NFTs. The platform features user and admin dashboards, artwork management, payments (demo), and artist management.
-
-## Features
-
-- User registration and login
-- Admin and user roles
-- NFT listing, buying, and selling
-- Artwork upload and management
-- Artist management (add, edit, delete)
-- Demo payment modal for NFT purchases
-- Pagination for NFT listings
-- Secure password hashing
-- Session-based authentication
-
-## Requirements
-
-- PHP 7.4+
-- MySQL/MariaDB
-- Composer (for dependencies, if any)
-- XAMPP/LAMP/WAMP or similar local server
-
-## Installation
-
-1. **Clone the repository:**
-    ```bash
-    git clone https://github.com/dishanta-adhikari/nft-marketplace-app.git
-    ```
-
-2. **Import the database:**
-    - Import the provided SQL file (if available) into your MySQL server.
-    - Update database credentials in `Config/Config.php` if needed.
-
-3. **Set up your server:**
-    - Place the project folder in your web server's root (e.g., `htdocs` for XAMPP).
-    - Make sure the `uploads/` directory is writable.
-
-4. **Start the server:**
-    - Run Apache and MySQL via XAMPP or your preferred stack.
-    - Visit `http://localhost/nft-marketplace-app` in your browser.
-
-## Folder Structure
-
-```
-Config/         # Database and URL configuration
-App/            # Core application logic
-Views/          # All PHP views (user, admin, auth, components)
-Assets/         # CSS, JS, images
-uploads/        # Uploaded artwork images
-```
-
-## Default Admin Login
-
-- Email: `admin@example.com`
-- Password: `1234`
-- (Change these in the database after first login.)
-
-## Default User Login
-
-- Email: `user1@example.com`
-- Password: `1234`
-- (Change these in the database after first login.)
-
-## License
-
-This project is for educational/demo purposes.
+A robust NFT marketplace developed using PHP, MySQL, and Bootstrap. Tailored for artists and collectors, it enables artwork publishing, browsing, and digital asset trading. The system includes secure authentication, role-based dashboards, artwork management, and a responsive user interface.
 
 ---
 
-**Note:**  
-Payments are simulated for demo purposes only. Do not use in production without implementing real payment processing and security best practices.
+## Features
+
+### Core Functionality
+
+- **User Authentication** – Secure login system with session management
+- **Role-Based Access** – Separate dashboards for Admin and User roles
+- **NFT Management** – Users can upload, list, and manage NFTs with images
+- **Artist Management** – Admins can add, edit, and delete artist profiles
+- **Simulated Purchase System** – Demo payment modal for artwork purchases
+- **Pagination** – Paginated views for browsing NFTs
+
+### Technical Features
+
+- **MVC Architecture** – Clean separation of Controllers, Views, and Models
+- **Database Security** – Uses prepared statements to guard against SQL injection
+- **Responsive UI** – Mobile-friendly design powered by Bootstrap
+- **File Uploads** – Supports secure artwork image uploads
+- **Session Management** – Ensures proper login sessions and access control
+
+---
+
+## Prerequisites
+
+- XAMPP (Apache, MySQL, PHP)
+- PHP 7.4 or newer
+- MySQL 5.7 or newer
+- Composer (for managing dependencies)
+
+---
+
+## Installation Guide
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/dishanta-adhikari/nft-marketplace-app.git
+cd nft-marketplace-app
+```
+
+### Move to XAMPP Directory
+
+Place the project folder inside the `htdocs` directory:
+
+```
+C:/xampp/htdocs/
+```
+
+### Database Setup
+
+- Open phpMyAdmin
+- Create a database (e.g., `nft_marketplace_db`)
+- Import the provided SQL file (if available)
+
+### Environment Configuration
+
+Update the following values in `Config/Config.php`:
+
+```php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'nft_marketplace_db');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('APP_URL', 'http://localhost/nft-marketplace-app');
+```
+
+### Install Dependencies (If Using Composer)
+
+```bash
+composer install
+```
+
+### Run the App
+
+Open in your browser:
+
+```
+http://localhost/nft-marketplace-app
+```
+
+---
+
+## User Roles
+
+### Admin
+
+- Manage artists
+- View and manage all NFTs
+- Simulated payments overview
+
+### User
+
+- Upload and list NFT artworks
+- Browse and purchase NFTs
+- View personal listings
+
+---
+
+## Security Highlights
+
+- **Prepared Statements** to prevent SQL Injection
+- **File Validation** for secure uploads
+- **Session-Based Authentication**
+- **Input Validation** (Client & Server-side)
+- **XSS Protection** through output escaping
+
+---
+
+## License
+
+This project is for **educational/demo purposes** and is not intended for production use.
+
+---
+
+## Credits
+
+Made with ❤️ using PHP.
