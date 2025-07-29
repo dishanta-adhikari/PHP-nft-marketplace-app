@@ -10,8 +10,10 @@ RewriteRule ^ - [L]
 # Custom Routes (Specific First)
 # ============================
 
-# /admin/lab/details/{id}
-#RewriteRule ^admin/lab/details/([0-9]+)/?$ src/views/admin/lab/details.php?id=$1 [L,QSA]
+RewriteRule ^artwork/([0-9]+)/?$ src/views/artwork/index.php?id=$1 [L,QSA]
+
+# /admin/artwork/create/123
+RewriteRule ^admin/artwork/create/?([0-9]*)$ src/views/admin/artwork/create.php?id=$1 [L,QSA]
 
 # /admin/lab/images/{id}
 #RewriteRule ^admin/lab/images/([0-9]+)/?$ src/views/admin/lab/images.php?id=$1 [L,QSA]

@@ -1,113 +1,25 @@
 <?php
-session_start();
+require_once __DIR__ . '/../components/header.php';
+require_once __DIR__ . '/../components/footer.php';
 
-require_once __DIR__ . "/../../App/App.php";
-require_once __DIR__ . "/../../Config/Url.php";
-require_once __DIR__ . "/../../Views/Components/header.php";
+use App\Middleware\SessionMiddleware;
+use App\Controllers\ArtistController;
+use App\Helpers\Flash;
 
-$app = new App();
-$conn = $app->connect();
+SessionMiddleware::validateAdminSession();
 
-$errors = [];
-$success = "";
+$controller = new ArtistController($con);
+$artists = $controller->handleRequest();
 
-// Helper function to sanitize inputs
-function sanitize($data)
-{
-    return htmlspecialchars(trim($data));
-}
 
-// Handle Create Artist
-if (isset($_POST['create_artist'])) {
-    $name = sanitize($_POST['name'] ?? '');
-    $email = sanitize($_POST['email'] ?? '');
-
-    if ($name === '') {
-        $errors[] = "Artist name is required.";
-    }
-    if ($email === '') {
-        $errors[] = "Email is required.";
-    }
-
-    if (empty($errors)) {
-        // Check if email already exists
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM artist WHERE Email = ?");
-        $stmt->execute([$email]);
-        if ($stmt->fetchColumn() > 0) {
-            $errors[] = "Email already exists.";
-        } else {
-            // Insert new artist
-            $stmt = $conn->prepare("INSERT INTO artist (Name, Email) VALUES (?, ?)");
-            if ($stmt->execute([$name, $email])) {
-                $success = "Artist added successfully.";
-            } else {
-                $errors[] = "Failed to add artist.";
-            }
-        }
-    }
-}
-
-// Handle Update Artist
-if (isset($_POST['update_artist'])) {
-    $id = intval($_POST['artist_id'] ?? 0);
-    $name = sanitize($_POST['name'] ?? '');
-    $email = sanitize($_POST['email'] ?? '');
-
-    if ($name === '') {
-        $errors[] = "Artist name is required.";
-    }
-    if ($email === '') {
-        $errors[] = "Email is required.";
-    }
-
-    if (empty($errors)) {
-        // Check if email exists for other artist
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM artist WHERE Email = ? AND Artist_ID != ?");
-        $stmt->execute([$email, $id]);
-        if ($stmt->fetchColumn() > 0) {
-            $errors[] = "Email already exists for another artist.";
-        } else {
-            // Update artist
-            $stmt = $conn->prepare("UPDATE artist SET Name = ?, Email = ? WHERE Artist_ID = ?");
-            if ($stmt->execute([$name, $email, $id])) {
-                $success = "Artist updated successfully.";
-            } else {
-                $errors[] = "Failed to update artist.";
-            }
-        }
-    }
-}
-
-// Handle Delete Artist
-if (isset($_POST['delete_artist'])) {
-    $id = intval($_POST['artist_id'] ?? 0);
-    $stmt = $conn->prepare("DELETE FROM artist WHERE Artist_ID = ?");
-    if ($stmt->execute([$id])) {
-        $success = "Artist deleted successfully.";
-    } else {
-        $errors[] = "Failed to delete artist.";
-    }
-}
-
-// Fetch all artists
-$stmt = $conn->query("SELECT * FROM artist ORDER BY Artist_ID DESC");
-$artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<link rel="stylesheet" href="<?php echo BASE_URL ?>/Assets/css/manage_artists.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/public/assets/css/manage_artists.css">
 
 <div class="artist-manager container py-5">
 
     <h2>Artist Manager</h2>
 
-    <!-- Success and error messages -->
-    <?php if ($success): ?>
-        <div class="alert alert-success text-center"><?= $success ?></div>
-    <?php endif; ?>
-    <?php if (!empty($errors)): ?>
-        <div class="alert alert-danger text-center">
-            <?php foreach ($errors as $err) echo htmlspecialchars($err) . "<br>"; ?>
-        </div>
-    <?php endif; ?>
+    <?php Flash::render(); ?>
 
     <!-- Create Artist Form -->
     <div class="card mb-4 bg-transparent border-0">
@@ -226,6 +138,26 @@ $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="<?php echo BASE_URL ?>/Assets/js/artist.js"></script>
+<script>
+    const editModal = document.getElementById('editArtistModal');
+    editModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const id = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+        const email = button.getAttribute('data-email');
 
-<?php require_once __DIR__ . "/../../Views/Components/footer.php"; ?>
+        document.getElementById('editArtistId').value = id;
+        document.getElementById('editArtistName').value = name;
+        document.getElementById('editArtistEmail').value = email;
+    });
+
+    const deleteModal = document.getElementById('deleteArtistModal');
+    deleteModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const id = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+
+        document.getElementById('deleteArtistId').value = id;
+        document.getElementById('deleteArtistName').innerText = name;
+    });
+</script>

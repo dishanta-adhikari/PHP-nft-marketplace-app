@@ -76,8 +76,8 @@ $totalPages = $results['totalPages'];
                         <?php if (!empty($art['IsSold'])): ?>
                             <button class="btn btn-secondary w-100" disabled>Sold</button>
                         <?php else: ?>
-                            <a href="<?= APP_URL ?>/artwork/view?id=<?= $art['Artwork_ID'] ?>" class="btn btn-primary w-100" aria-label="View and mint NFT <?= htmlspecialchars($art['Title']) ?>">View & Mint NFT</a>
-                        <?php endif; ?>
+                            <a href="<?= APP_URL ?>/artwork/<?= $art['Artwork_ID'] ?>" class="btn btn-primary w-100" aria-label="View and mint NFT <?= htmlspecialchars($art['Title']) ?>">View & Mint NFT</a>
+                        <?php endif; ?> 
                     </div>
                 </div>
             </div>

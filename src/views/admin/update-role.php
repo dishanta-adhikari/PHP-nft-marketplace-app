@@ -1,48 +1,32 @@
 <?php
-session_start();
+require_once __DIR__ . '/../components/header.php';
+require_once __DIR__ . '/../components/footer.php';
 
-require_once __DIR__ . "/../../App/App.php";
-require_once __DIR__ . "/../../Config/Url.php";
-require_once __DIR__ . "/../../Views/Components/header.php";
+use App\Middleware\SessionMiddleware;
+use App\Controllers\UserController;
+use App\Helpers\Flash;
 
-$app = new App();
-$conn = $app->connect();
+SessionMiddleware::validateAdminSession();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    echo "<div class='alert alert-danger text-center'>Access Denied</div>";
-    header("Location: " . BASE_URL);
-    exit();
-}
-
-// Handle role change
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id'], $_POST['new_role'])) {
-    $stmt = $conn->prepare("UPDATE user SET role = ? WHERE user_id = ?");
-    $stmt->execute([$_POST['new_role'], $_POST['user_id']]);
-    header("Location: ".VIEW_URL ."/admin/users");
-    exit();
-}
-
-// Fetch all users except current admin
-$stmt = $conn->prepare("SELECT user_id, name, email, role FROM user WHERE user_id != ?");
-$stmt->execute([$_SESSION['user_id']]);
-$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$controller = new UserController($con);
+$users = $controller->manageUsers();
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Assets/css/manage_users.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/public/assets/css/manage_users.css">
 <div class="container my-5">
+
+    <?php Flash::render(); ?>
+
     <h2 class="mb-4 text-center fw-bold" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
         Manage Users
     </h2>
 
-    <!-- Search bar -->
     <div class="mb-4 d-flex justify-content-center">
         <input id="searchInput" type="search" class="form-control form-control-lg w-50 shadow-sm" placeholder="Search users by name or email..." aria-label="Search Users">
     </div>
 
     <?php if (count($users) === 0): ?>
-        <div class="alert alert-info text-center fs-5">
-            No other users found.
-        </div>
+        <div class="alert alert-info text-center fs-5">No other users found.</div>
     <?php else: ?>
         <div id="usersContainer" class="row g-4 justify-content-center">
             <?php foreach ($users as $user): ?>
@@ -66,12 +50,10 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                             <form method="post" class="d-flex gap-2 align-items-center role-form" onsubmit="return confirmRoleChange(this);">
                                 <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>">
-
                                 <select name="new_role" class="form-select form-select-sm flex-grow-1" required>
                                     <option value="user" <?= $user['role'] === 'user' ? 'selected' : '' ?>>User</option>
                                     <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
                                 </select>
-
                                 <button type="submit" class="btn btn-sm btn-outline-success" title="Update Role">
                                     <i class="bi bi-check-lg"></i>
                                 </button>
@@ -91,24 +73,13 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return confirm(`Are you sure you want to change the role to "${role}"?`);
     }
 
-    // Real-time search filtering
     document.getElementById('searchInput').addEventListener('input', function() {
         const query = this.value.trim().toLowerCase();
         const users = document.querySelectorAll('.user-card-wrapper');
-
         users.forEach(user => {
             const name = user.getAttribute('data-name');
             const email = user.getAttribute('data-email');
-            if (name.includes(query) || email.includes(query)) {
-                user.style.display = '';
-                user.classList.add('fade-in');
-            } else {
-                user.style.display = 'none';
-                user.classList.remove('fade-in');
-            }
+            user.style.display = name.includes(query) || email.includes(query) ? '' : 'none';
         });
     });
 </script>
-
-
-<?php require_once __DIR__ . "/../../Views/Components/footer.php"; ?>

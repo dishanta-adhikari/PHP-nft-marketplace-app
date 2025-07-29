@@ -1,54 +1,28 @@
 <?php
-session_start();
+require_once __DIR__ . '/../components/header.php';
+require_once __DIR__ . '/../components/footer.php';
 
-require_once __DIR__ . "/../../App/App.php";
-require_once __DIR__ . "/../../Config/Url.php";
-include_once __DIR__ . "/../../Views/Components/header.php";
+use App\Controllers\NFTController;
+use App\Helpers\Flash;
 
-$app = new App();
-$conn = $app->connect();
+$nftController = new NFTController($con);
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login");
-    exit;
-}
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+$limit = 6;
 
-$userID = $_SESSION['user_id'];
+$results = $nftController->getUserNFTs($_SESSION['user_id'], $page, $limit);
+$ownedNFTs = $results['nfts'];
+$totalPages = $results['totalPages'];
 
-// Pagination variables
-$itemsPerPage = 6;
-$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
-$offset = ($page - 1) * $itemsPerPage;
-
-// Get total count of user's NFTs
-$countStmt = $conn->prepare("
-    SELECT COUNT(*) FROM nft
-    JOIN artwork a ON nft.Artwork_ID = a.Artwork_ID
-    WHERE nft.Owner_User_ID = ?
-");
-$countStmt->execute([$userID]);
-$totalItems = $countStmt->fetchColumn();
-$totalPages = ceil($totalItems / $itemsPerPage);
-
-// Fetch user's NFTs with pagination
-$stmt = $conn->prepare("
-    SELECT nft.NFT_ID, a.Title, a.Photo, a.Price, nft.Is_Paid, nft.token
-    FROM nft
-    JOIN artwork a ON nft.Artwork_ID = a.Artwork_ID
-    WHERE nft.Owner_User_ID = ?
-    LIMIT {$itemsPerPage} OFFSET {$offset}
-");
-$stmt->execute([$userID]);
-$ownedNFTs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/dashboard.css">
+
+<link rel="stylesheet" href="<?= APP_URL ?>/public/assets/css/dashboard.css">
 <div class="container my-4">
+    <?php Flash::render(); ?>
+
     <h1>Your NFTs</h1>
-    <?php if (isset($_SESSION['message'])): ?>
-        <div class="alert alert-success"><?= $_SESSION['message'];
-                                            unset($_SESSION['message']); ?></div>
-    <?php endif; ?>
+
 
     <div id="paymentAlert" class="alert alert-success d-none nft-payment-alert" role="alert"></div>
 
@@ -62,18 +36,19 @@ $ownedNFTs = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php foreach ($ownedNFTs as $nft): ?>
             <div class="col-md-4">
                 <div class="card mb-3 shadow-sm nft-card">
-                    <img src="<?= BASE_URL . "/" . htmlspecialchars($nft['Photo']) ?>" class="card-img-top nft-card-img" alt="<?= htmlspecialchars($nft['Title']) ?>">
+                    <img src="<?= APP_URL . "/public/uploads/images/" . htmlspecialchars($nft['Photo']) ?>" class="card-img-top nft-card-img" alt="<?= htmlspecialchars($nft['Title']) ?>">
                     <div class="card-body">
                         <h5 class="card-title nft-card-title"><?= htmlspecialchars($nft['Title']) ?></h5>
                         <p class="nft-price-text"><strong>Price:</strong> $<?= number_format($nft['Price'], 2) ?></p>
 
                         <?php if ($nft['Is_Paid']): ?>
                             <a
-                                href="<?= htmlspecialchars($nft['Photo']) ?>"
+                                href="<?= APP_URL . "/public/uploads/images/" . htmlspecialchars($nft['Photo']) ?>"
                                 class="btn btn-primary nft-download-btn"
                                 download="<?= preg_replace('/\s+/', '_', $nft['Title']) ?>.<?= pathinfo($nft['Photo'], PATHINFO_EXTENSION) ?>">
                                 Download
                             </a>
+
                             <p class="mt-2">
                                 <strong>Token:</strong>
                                 <code class="text-break"><?= htmlspecialchars($nft['token']) ?></code>
@@ -181,7 +156,7 @@ $ownedNFTs = $stmt->fetchAll(PDO::FETCH_ASSOC);
         const formData = new FormData();
         formData.append('nft_id', currentNFTId);
 
-        fetch('<?php echo VIEW_URL; ?>/payment/process.php', {
+        fetch('<?= APP_URL ?>/payment', {
                 method: 'POST',
                 body: formData
             })
@@ -208,5 +183,3 @@ $ownedNFTs = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
     });
 </script>
-
-<?php include_once __DIR__ . "/../../Views/Components/footer.php"; ?>

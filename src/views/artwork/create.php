@@ -1,91 +1,63 @@
 <?php
+require_once __DIR__ . '/../components/header.php';
+require_once __DIR__ . '/../components/footer.php';
 
-require_once __DIR__ . "/../../App/App.php";
-require_once __DIR__ . "/../../Config/Url.php";
+use App\Middleware\SessionMiddleware;
+use App\Controllers\ArtistController;
+use App\Controllers\ArtworkController;
+use App\Helpers\Flash;
 
-session_start();
-$app = new App();
-$conn = $app->connect();
+SessionMiddleware::validateAdminSession();
 
-
-// Only admins can access this page
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header("Location: " . VIEW_URL . "/auth/login");
-    exit();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+    $artworkController = new ArtworkController($con);
+    $artworkController->create(array_merge($_POST, ['photo' => $_FILES['photo']]));
 }
 
-$success = $error = "";
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $title = trim($_POST['title']);
-    $price = $_POST['price'];
-    $description = trim($_POST['description']);
-    $artist_id = $_POST['artist_id'];
-    $photo_path = '';
-
-    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-        $target_dir = "/../../uploads/";
-        if (!is_dir($target_dir)) {
-            mkdir($target_dir, 0777, true);
-        }
-
-        $photo_path = 'uploads/' . basename($_FILES["photo"]["name"]);
-        move_uploaded_file($_FILES["photo"]["tmp_name"], $photo_path);
-    }
-
-    if ($title && $price && $artist_id && $photo_path) {
-        $stmt = $conn->prepare("INSERT INTO artwork (Title, Price, Photo, Description, Artist_ID) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$title, $price, $photo_path, $description, $artist_id]);
-        $success = "NFT artwork added successfully.";
-    } else {
-        $error = "Please fill in all required fields.";
-    }
-}
+$artistController = new ArtistController($con);
+$artists = $artistController->fetchAll();
 ?>
 
-<?php require_once __DIR__ . "/../Components/header.php"; ?>
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Assets/css/add_nft.css">
 
-<div class="container my-5">
-    <h2>Create NFT</h2>
+<link rel="stylesheet" href="<?= APP_URL ?>/public/assets/css/add_nft.css">
 
-    <?php if ($success): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
-    <?php elseif ($error): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
+<main>
+    <div class="container my-5">
+        <h2>Create NFT</h2>
 
-    <form method="post" enctype="multipart/form-data" class="card shadow-sm">
-        <div class="mb-3">
-            <label class="form-label" for="title">Title *</label>
-            <input type="text" id="title" name="title" class="form-control" required autofocus>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="price">Price (USD) *</label>
-            <input type="number" id="price" step="0.01" name="price" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="photo">Artwork Image *</label>
-            <input type="file" id="photo" name="photo" accept="image/*" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="description">Description</label>
-            <textarea id="description" name="description" rows="3" class="form-control"></textarea>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="artist_id">Select Artist *</label>
-            <select id="artist_id" name="artist_id" class="form-select" required>
-                <option value="">-- Select Artist --</option>
-                <?php
-                $artists = $conn->query("SELECT * FROM artist")->fetchAll();
-                foreach ($artists as $artist) {
-                    echo "<option value=\"" . htmlspecialchars($artist['Artist_ID']) . "\">" . htmlspecialchars($artist['Name']) . "</option>";
-                }
-                ?>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-success">Add NFT</button>
-    </form>
-</div>
+        <?php Flash::render(); ?>
 
-<?php require_once __DIR__ . "/../Components/footer.php"; ?>
+        <form method="POST" enctype="multipart/form-data" class="card shadow-sm">
+            <div class="mb-3">
+                <label class="form-label" for="title">Title *</label>
+                <input type="text" id="title" name="title" class="form-control" required autofocus>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="price">Price (USD) *</label>
+                <input type="number" id="price" step="0.01" name="price" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="photo">Artwork Image *</label>
+                <input type="file" id="photo" name="photo" accept="image/*" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="description">Description</label>
+                <textarea id="description" name="description" rows="3" class="form-control"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="artist_id">Select Artist *</label>
+                <select id="artist_id" name="artist_id" class="form-select" required>
+                    <option value="">-- Select Artist --</option>
+
+                    <?php foreach ($artists as $artist) : ?>
+                        <option value="<?= htmlspecialchars($artist['Artist_ID']) ?>">
+                            <?= htmlspecialchars($artist['Name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+
+                </select>
+            </div>
+            <button type="submit" name="submit" class="btn btn-success">Add NFT</button>
+        </form>
+    </div>
+</main>
